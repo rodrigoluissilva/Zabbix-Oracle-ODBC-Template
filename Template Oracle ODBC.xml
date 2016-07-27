@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-07-25T10:41:56Z</date>
+    <date>2016-07-27T10:55:23Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -2806,7 +2806,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
                     <trigger_prototypes>
                         <trigger_prototype>
                             <expression>{Template Oracle ODBC:db.odbc.select[ts-{#TSNAME}-used_pct,{$ORACLE_ODBC_DSN}].last()}&gt;90</expression>
-                            <name>Tablespace Usage is more than 90% on {#TSNAME}</name>
+                            <name>Tablespace Usage on {HOST.NAME} is more than 90% on {#TSNAME}</name>
                             <url/>
                             <status>0</status>
                             <priority>3</priority>
@@ -3054,17 +3054,17 @@ WHERE tablespace_name='{#TSNAME}';</params>
     <triggers>
         <trigger>
             <expression>{Template Oracle ODBC:db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}].last(0)}&gt;10</expression>
-            <name>Active Session {HOST.NAME}</name>
+            <name>Active Session on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>4</priority>
+            <priority>3</priority>
             <description>44414E474552</description>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
             <expression>{Template Oracle ODBC:db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}].last(0)}&gt;20</expression>
-            <name>Active Session {HOST.NAME}</name>
+            <name>Active Session on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>4</priority>
@@ -3074,11 +3074,11 @@ WHERE tablespace_name='{#TSNAME}';</params>
         </trigger>
         <trigger>
             <expression>{Template Oracle ODBC:db.odbc.select[ora_archive, {$ORACLE_ODBC_DSN}].last(0)}&gt;100</expression>
-            <name>Archivelog</name>
+            <name>Archivelog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
-            <description>4849474820417263686976656C6F672067656E65726174696F6E</description>
+            <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
