@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-07-27T10:55:23Z</date>
+    <date>2016-07-28T09:10:03Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -47,7 +47,7 @@
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT ROUND(A.LOGS*B.AVG/1024/1024/10)&#13;
+                    <params>SELECT ROUND(A.LOGS*B.AVG/1024/1024/1024)&#13;
 FROM&#13;
   (SELECT COUNT (*) LOGS&#13;
   FROM V$LOG_HISTORY&#13;
@@ -2866,6 +2866,10 @@ WHERE tablespace_name='{#TSNAME}';</params>
             </discovery_rules>
             <macros>
                 <macro>
+                    <macro>{$ORACLE_ARCHIVELOGSIZE}</macro>
+                    <value>600</value>
+                </macro>
+                <macro>
                     <macro>{$ORACLE_ODBC_DSN}</macro>
                     <value/>
                 </macro>
@@ -3073,7 +3077,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Oracle ODBC:db.odbc.select[ora_archive, {$ORACLE_ODBC_DSN}].last(0)}&gt;100</expression>
+            <expression>{Template Oracle ODBC:db.odbc.select[ora_archive, {$ORACLE_ODBC_DSN}].last(0)}&gt;{$ORACLE_ARCHIVELOGSIZE}</expression>
             <name>Archivelog on {HOST.NAME}</name>
             <url/>
             <status>0</status>
