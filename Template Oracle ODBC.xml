@@ -724,7 +724,7 @@ WHERE NAME ='db block gets'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT LISTAGG(locks, ',') WITHIN GROUP (&#13;
+                    <params>SELECT LISTAGG(locks, ';') WITHIN GROUP (&#13;
 ORDER BY dummy) AS locks&#13;
 FROM&#13;
   (SELECT 'dummy' AS dummy,&#13;
@@ -768,7 +768,7 @@ FROM&#13;
     AND s.ID2      =m.ID2&#13;
     )))&#13;
   )&#13;
-GROUP BY locks&#13;
+GROUP BY dummy&#13;
 UNION&#13;
 SELECT 'none' FROM dual</params>
                     <ipmi_sensor/>
