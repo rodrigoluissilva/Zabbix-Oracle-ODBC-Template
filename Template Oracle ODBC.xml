@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-07-28T09:10:03Z</date>
+    <date>2016-10-28T10:29:20Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -31,12 +31,12 @@
                     <snmp_oid/>
                     <key>db.odbc.select[ora_archive, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>MB</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -47,17 +47,13 @@
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT ROUND(A.LOGS*B.AVG/1024/1024/1024)&#13;
+                    <params>SELECT ROUND(6*A.LOGS*B.AVG) AS ARCHIVE&#13;
 FROM&#13;
   (SELECT COUNT (*) LOGS&#13;
   FROM V$LOG_HISTORY&#13;
   WHERE FIRST_TIME &gt;= (sysdate -10/60/24)&#13;
   ) A,&#13;
-  (SELECT AVG(BYTES) AVG,&#13;
-    COUNT(1),&#13;
-    MAX(BYTES) Max_Bytes,&#13;
-    MIN(BYTES) Min_Bytes&#13;
-  FROM v$log&#13;
+  (SELECT AVG(BYTES) AVG FROM v$log&#13;
   ) B</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -67,7 +63,11 @@ FROM&#13;
                     <publickey/>
                     <privatekey/>
                     <port/>
-                    <description/>
+                    <description>Archivelog rate per hour&#13;
+&#13;
+(sysdate -10/60/24) = last 10 minutes&#13;
+&#13;
+6*A.LOGS*B.AVG = 6 slices of 10 minutes to get the hour rate</description>
                     <inventory_link>0</inventory_link>
                     <applications>
                         <application>
@@ -85,7 +85,7 @@ FROM&#13;
                     <snmp_oid/>
                     <key>db.odbc.select[ora_audit, {$ORACLE_ODBC_DSN}]</key>
                     <delay>300</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>0</trends>
                     <status>1</status>
                     <value_type>4</value_type>
@@ -150,8 +150,8 @@ SELECT 'none' FROM dual</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_dbblockgets, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>60</delay>
-                    <history>90</history>
+                    <delay>120</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -167,7 +167,7 @@ SELECT 'none' FROM dual</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(name,'db block gets', value,0))) &quot;block_gets&quot;&#13;
+                    <params>SELECT SUM(DECODE(name,'db block gets', value,0)) &quot;block_gets&quot;&#13;
 FROM v$sysstat</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -194,8 +194,8 @@ FROM v$sysstat</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_dbconsistentgets, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>60</delay>
-                    <history>90</history>
+                    <delay>120</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -211,7 +211,7 @@ FROM v$sysstat</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(name,'consistent gets', value,0))) &quot;consistent_gets&quot;&#13;
+                    <params>SELECT SUM(DECODE(name,'consistent gets', value,0)) &quot;consistent_gets&quot;&#13;
 FROM v$sysstat</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -238,13 +238,13 @@ FROM v$sysstat</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_dbhitratio, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>90</delay>
-                    <history>90</history>
+                    <delay>180</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
                     <allowed_hosts/>
-                    <units/>
+                    <units>%</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -255,7 +255,7 @@ FROM v$sysstat</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT ( SUM(DECODE(name,'consistent gets', value,0)) + SUM(DECODE(name,'db block gets', value,0)) - SUM(DECODE(name,'physical reads', value,0))) / (SUM(DECODE(name,'consistent gets', value,0)) + SUM(DECODE(name,'db block gets', value,0)) ) * 100 &quot;hit_ratio&quot;&#13;
+                    <params>SELECT ROUND((( SUM(DECODE(name,'consistent gets', value,0)) + SUM(DECODE(name,'db block gets', value,0)) - SUM(DECODE(name,'physical reads', value,0))) / (SUM(DECODE(name,'consistent gets', value,0)) + SUM(DECODE(name,'db block gets', value,0)) ) * 100),2) &quot;hit_ratio&quot;&#13;
 FROM v$sysstat</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -283,7 +283,7 @@ FROM v$sysstat</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_dbphysicalread, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -326,7 +326,7 @@ FROM v$sysstat</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_dbversion, {$ORACLE_ODBC_DSN}]</key>
                     <delay>21600</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -397,7 +397,7 @@ GROUP BY dummy</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_hitratio_body, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -413,7 +413,9 @@ GROUP BY dummy</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT gethitratio*100 &quot;get_pct&quot; FROM v$librarycache WHERE namespace ='BODY'</params>
+                    <params>SELECT ROUND(gethitratio*100,2) &quot;get_pct&quot;&#13;
+FROM v$librarycache&#13;
+WHERE namespace ='BODY'</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
                     <authtype>0</authtype>
@@ -440,7 +442,7 @@ GROUP BY dummy</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_hitratio_sqlarea, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -456,7 +458,7 @@ GROUP BY dummy</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT gethitratio*100 &quot;get_pct&quot;&#13;
+                    <params>SELECT ROUND(gethitratio*100,2) &quot;get_pct&quot;&#13;
 FROM v$librarycache&#13;
 WHERE namespace ='SQL AREA'</params>
                     <ipmi_sensor/>
@@ -485,7 +487,7 @@ WHERE namespace ='SQL AREA'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_hitratio_table_proc, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -501,7 +503,7 @@ WHERE namespace ='SQL AREA'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT gethitratio*100 &quot;get_pct&quot;&#13;
+                    <params>SELECT ROUND(gethitratio*100,2) &quot;get_pct&quot;&#13;
 FROM v$librarycache&#13;
 WHERE namespace = 'TABLE/PROCEDURE'</params>
                     <ipmi_sensor/>
@@ -530,7 +532,7 @@ WHERE namespace = 'TABLE/PROCEDURE'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_hitratio_trigger, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -546,7 +548,9 @@ WHERE namespace = 'TABLE/PROCEDURE'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT gethitratio*100 &quot;get_pct&quot; FROM v$librarycache WHERE namespace ='TRIGGER'</params>
+                    <params>SELECT ROUND(gethitratio*100,2) &quot;get_pct&quot;&#13;
+FROM v$librarycache&#13;
+WHERE namespace ='TRIGGER'</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
                     <authtype>0</authtype>
@@ -573,7 +577,7 @@ WHERE namespace = 'TABLE/PROCEDURE'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_lio_block_changes, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -589,7 +593,7 @@ WHERE namespace = 'TABLE/PROCEDURE'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(NAME,'db block changes',VALUE,0)))&#13;
+                    <params>SELECT SUM(DECODE(NAME,'db block changes',VALUE,0)) BLK_CHANGES&#13;
 FROM V$SYSSTAT&#13;
 WHERE NAME ='db block changes'</params>
                     <ipmi_sensor/>
@@ -618,10 +622,10 @@ WHERE NAME ='db block changes'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_lio_consistent_read, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
                     <units>Blocks/sec</units>
                     <delta>2</delta>
@@ -634,7 +638,7 @@ WHERE NAME ='db block changes'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(name,'consistent gets',value,0)))&#13;
+                    <params>SELECT SUM(DECODE(name,'consistent gets',value,0)) CONS_GETS&#13;
 FROM V$SYSSTAT&#13;
 WHERE NAME ='consistent gets'</params>
                     <ipmi_sensor/>
@@ -663,7 +667,7 @@ WHERE NAME ='consistent gets'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_lio_current_read, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -679,7 +683,7 @@ WHERE NAME ='consistent gets'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(name,'db block gets',value,0)))&#13;
+                    <params>SELECT SUM(DECODE(name,'db block gets',value,0)) BLK_GETS&#13;
 FROM V$SYSSTAT&#13;
 WHERE NAME ='db block gets'</params>
                     <ipmi_sensor/>
@@ -708,7 +712,7 @@ WHERE NAME ='db block gets'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_locks, {$ORACLE_ODBC_DSN}]</key>
                     <delay>300</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -724,7 +728,7 @@ WHERE NAME ='db block gets'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT LISTAGG(locks, ';') WITHIN GROUP (&#13;
+                    <params>SELECT LISTAGG(locks, ',') WITHIN GROUP (&#13;
 ORDER BY dummy) AS locks&#13;
 FROM&#13;
   (SELECT 'dummy' AS dummy,&#13;
@@ -797,7 +801,7 @@ SELECT 'none' FROM dual</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_maxprocs, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -840,7 +844,7 @@ SELECT 'none' FROM dual</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_maxsession, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -883,7 +887,7 @@ SELECT 'none' FROM dual</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_miss_latch, {$ORACLE_ODBC_DSN}]</key>
                     <delay>60</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -926,12 +930,12 @@ SELECT 'none' FROM dual</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pga, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units/>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -942,7 +946,7 @@ SELECT 'none' FROM dual</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(DECODE( unit,'bytes', value/1024/1024, value),'999999999.9') value&#13;
+                    <params>SELECT value&#13;
 FROM V$PGASTAT&#13;
 WHERE name IN 'total PGA inuse'</params>
                     <ipmi_sensor/>
@@ -971,12 +975,12 @@ WHERE name IN 'total PGA inuse'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pga_aggregate_target, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units/>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -987,7 +991,7 @@ WHERE name IN 'total PGA inuse'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(DECODE( unit,'bytes', value/1024/1024, value),'999999999.9') value&#13;
+                    <params>SELECT value&#13;
 FROM V$PGASTAT&#13;
 WHERE name IN 'aggregate PGA target parameter'</params>
                     <ipmi_sensor/>
@@ -1016,7 +1020,7 @@ WHERE name IN 'aggregate PGA target parameter'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_phio_datafile_reads, {$ORACLE_ODBC_DSN}]</key>
                     <delay>60</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -1032,7 +1036,7 @@ WHERE name IN 'aggregate PGA target parameter'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(name,'physical reads direct',value,0)))&#13;
+                    <params>SELECT SUM(DECODE(name,'physical reads direct',value,0)) PHY_READ_DIRECT&#13;
 FROM V$SYSSTAT&#13;
 WHERE name ='physical reads direct'</params>
                     <ipmi_sensor/>
@@ -1061,7 +1065,7 @@ WHERE name ='physical reads direct'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_phio_datafile_writes, {$ORACLE_ODBC_DSN}]</key>
                     <delay>60</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -1077,7 +1081,7 @@ WHERE name ='physical reads direct'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(name,'physical writes direct',value,0)))&#13;
+                    <params>SELECT SUM(DECODE(name,'physical writes direct',value,0)) PHY_WRITE_DIRECT&#13;
 FROM V$SYSSTAT&#13;
 WHERE name ='physical writes direct'</params>
                     <ipmi_sensor/>
@@ -1105,8 +1109,8 @@ WHERE name ='physical writes direct'</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_phio_redo_writes, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>60</delay>
-                    <history>90</history>
+                    <delay>180</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -1122,7 +1126,7 @@ WHERE name ='physical writes direct'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(name,'redo writes',value,0)))&#13;
+                    <params>SELECT SUM(DECODE(name,'redo writes',value,0)) REDO_WRITE&#13;
 FROM V$SYSSTAT&#13;
 WHERE name ='redo writes'</params>
                     <ipmi_sensor/>
@@ -1151,7 +1155,7 @@ WHERE name ='redo writes'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pinhitratio_body, {$ORACLE_ODBC_DSN}]</key>
                     <delay>60</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -1167,7 +1171,7 @@ WHERE name ='redo writes'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT pins/(pins+reloads)*100 &quot;pin_hit ratio&quot;&#13;
+                    <params>SELECT ROUND(pins/(pins+reloads)*100,2) &quot;pin_hit ratio&quot;&#13;
 FROM v$librarycache&#13;
 WHERE namespace ='BODY'</params>
                     <ipmi_sensor/>
@@ -1196,7 +1200,7 @@ WHERE namespace ='BODY'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pinhitratio_sqlarea, {$ORACLE_ODBC_DSN}]</key>
                     <delay>60</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -1212,7 +1216,7 @@ WHERE namespace ='BODY'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT pins/(pins+reloads)*100 &quot;pin_hit ratio&quot;&#13;
+                    <params>SELECT ROUND(pins/(pins+reloads)*100,2) &quot;pin_hit ratio&quot;&#13;
 FROM v$librarycache&#13;
 WHERE namespace ='SQL AREA'</params>
                     <ipmi_sensor/>
@@ -1241,7 +1245,7 @@ WHERE namespace ='SQL AREA'</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pinhitratio_table-proc, {$ORACLE_ODBC_DSN}]</key>
                     <delay>60</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -1257,7 +1261,7 @@ WHERE namespace ='SQL AREA'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT pins/(pins+reloads)*100 &quot;pin_hit ratio&quot;&#13;
+                    <params>SELECT ROUND(pins/(pins+reloads)*100,2) &quot;pin_hit ratio&quot;&#13;
 FROM v$librarycache&#13;
 WHERE namespace ='TABLE/PROCEDURE'</params>
                     <ipmi_sensor/>
@@ -1285,8 +1289,8 @@ WHERE namespace ='TABLE/PROCEDURE'</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pinhitratio_trigger, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>60</delay>
-                    <history>90</history>
+                    <delay>180</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -1302,7 +1306,7 @@ WHERE namespace ='TABLE/PROCEDURE'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT pins/(pins+reloads)*100 &quot;pin_hit ratio&quot;&#13;
+                    <params>SELECT ROUND(pins/(pins+reloads)*100,2) &quot;pin_hit ratio&quot;&#13;
 FROM v$librarycache&#13;
 WHERE namespace ='TRIGGER'</params>
                     <ipmi_sensor/>
@@ -1330,13 +1334,13 @@ WHERE namespace ='TRIGGER'</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pool_dict_cache, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>70</delay>
-                    <history>90</history>
+                    <delay>280</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1347,7 +1351,7 @@ WHERE namespace ='TRIGGER'</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,'shared pool',DECODE(name,'dictionary cache',(bytes)/(1024*1024),0),0)),2)) pool_dict_cache&#13;
+                    <params>SELECT SUM(DECODE(pool,'shared pool',DECODE(name,'dictionary cache',bytes,0),0)) pool_dict_cache&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1374,13 +1378,13 @@ FROM V$SGASTAT</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pool_free_mem, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>70</delay>
-                    <history>90</history>
+                    <delay>210</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1391,7 +1395,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,'shared pool',DECODE(name,'free memory',(bytes)/(1024*1024),0),0)),2)) pool_free_mem&#13;
+                    <params>SELECT SUM(DECODE(pool,'shared pool',DECODE(name,'free memory',bytes,0),0)) pool_free_mem&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1419,12 +1423,12 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pool_lib_cache, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1435,7 +1439,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,'shared pool',DECODE(name,'library cache',(bytes)/(1024*1024),0),0)),2)) pool_lib_cache&#13;
+                    <params>SELECT SUM(DECODE(pool,'shared pool',DECODE(name,'library cache',bytes,0),0)) pool_lib_cache&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1462,13 +1466,13 @@ FROM V$SGASTAT</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pool_misc, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>70</delay>
-                    <history>90</history>
+                    <delay>210</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1479,7 +1483,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,'shared pool',DECODE(name,'library cache',0,'dictionary cache',0,'free memory',0,'sql area', 0,(bytes)/(1024*1024)),0)),2)) pool_misc&#13;
+                    <params>SELECT SUM(DECODE(pool,'shared pool',DECODE(name,'library cache',0,'dictionary cache',0,'free memory',0,'sql area', 0,bytes),0)) pool_misc&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1507,12 +1511,12 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_pool_sql_area, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1523,7 +1527,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,'shared pool',DECODE(name,'sql area',(bytes)/(1024*1024),0),0)),2)) pool_sql_area&#13;
+                    <params>SELECT SUM(DECODE(pool,'shared pool',DECODE(name,'sql area',bytes,0),0)) pool_sql_area&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1551,7 +1555,7 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_procnum, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -1594,7 +1598,7 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_session, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -1637,7 +1641,7 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -1680,7 +1684,7 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_session_inactive, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -1724,7 +1728,7 @@ FROM V$SESSION</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_session_system, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -1767,12 +1771,12 @@ FROM V$SESSION</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_sga_buffer_cache, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1783,7 +1787,7 @@ FROM V$SESSION</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,NULL,DECODE(name,'db_block_buffers',(bytes)/(1024*1024),'buffer_cache',(bytes)/(1024*1024),0),0)),2)) sga_bufcache&#13;
+                    <params>SELECT SUM(DECODE(pool,NULL,DECODE(name,'db_block_buffers',(bytes),'buffer_cache',bytes,0),0)) sga_bufcache&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1811,12 +1815,12 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_sga_fixed, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1827,7 +1831,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,NULL,DECODE(name,'fixed_sga',(bytes)/(1024*1024),0),0)),2)) sga_fixed&#13;
+                    <params>SELECT SUM(DECODE(pool,NULL,DECODE(name,'fixed_sga',bytes,0),0)) sga_fixed&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1854,13 +1858,13 @@ FROM V$SGASTAT</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_sga_java_pool, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>70</delay>
-                    <history>90</history>
+                    <delay>240</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1871,7 +1875,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,'java pool',(bytes)/(1024*1024),0)),2)) sga_jpool&#13;
+                    <params>SELECT SUM(DECODE(pool,'java pool',bytes,0)) sga_jpool&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1898,13 +1902,13 @@ FROM V$SGASTAT</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_sga_large_pool, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>70</delay>
-                    <history>90</history>
+                    <delay>140</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1915,7 +1919,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,'large pool',(bytes)/(1024*1024),0)),2)) sga_lpool&#13;
+                    <params>SELECT SUM(DECODE(pool,'large pool',bytes,0)) sga_lpool&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1943,12 +1947,12 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_sga_log_buffer, {$ORACLE_ODBC_DSN}]</key>
                     <delay>70</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -1959,7 +1963,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,NULL,DECODE(name,'log_buffer',(bytes)/(1024*1024),0),0)),2)) sga_lbuffer&#13;
+                    <params>SELECT SUM(DECODE(pool,NULL,DECODE(name,'log_buffer',bytes,0),0)) sga_lbuffer&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -1986,13 +1990,13 @@ FROM V$SGASTAT</params>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_sga_shared_pool, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>70</delay>
-                    <history>90</history>
+                    <delay>210</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
-                    <value_type>0</value_type>
+                    <value_type>3</value_type>
                     <allowed_hosts/>
-                    <units>M</units>
+                    <units>b</units>
                     <delta>0</delta>
                     <snmpv3_contextname/>
                     <snmpv3_securityname/>
@@ -2003,7 +2007,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(ROUND(SUM(DECODE(pool,'shared pool',DECODE(name,'library cache',0,'dictionary cache',0,'free memory',0,'sql area',0,(bytes)/(1024*1024)),0)),2)) pool_misc&#13;
+                    <params>SELECT SUM(DECODE(pool,'shared pool',DECODE(name,'library cache',0,'dictionary cache',0,'free memory',0,'sql area',0,bytes),0)) pool_misc&#13;
 FROM V$SGASTAT</params>
                     <ipmi_sensor/>
                     <data_type>0</data_type>
@@ -2031,7 +2035,7 @@ FROM V$SGASTAT</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_sqlnotindexed, {$ORACLE_ODBC_DSN}]</key>
                     <delay>90</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>0</value_type>
@@ -2047,7 +2051,7 @@ FROM V$SGASTAT</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT SUM(DECODE(NAME, 'table scans (long tables)', VALUE, 0))/ (SUM(DECODE(NAME, 'table scans (long tables)', VALUE, 0))+SUM(DECODE(NAME, 'table scans (short tables)', VALUE, 0)))*100 SQL_NOT_INDEXED&#13;
+                    <params>SELECT ROUND((SUM(DECODE(NAME, 'table scans (long tables)', VALUE, 0))/ (SUM(DECODE(NAME, 'table scans (long tables)', VALUE, 0))+SUM(DECODE(NAME, 'table scans (short tables)', VALUE, 0)))*100),3) SQL_NOT_INDEXED&#13;
 FROM V$SYSSTAT&#13;
 WHERE 1     =1&#13;
 AND ( NAME IN ('table scans (long tables)','table scans (short tables)') )</params>
@@ -2076,8 +2080,8 @@ AND ( NAME IN ('table scans (long tables)','table scans (short tables)') )</para
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_uptime, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>60</delay>
-                    <history>90</history>
+                    <delay>600</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2121,7 +2125,7 @@ FROM v$instance</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_userconn, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2164,7 +2168,7 @@ FROM v$instance</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_users_locked, {$ORACLE_ODBC_DSN}]</key>
                     <delay>300</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -2180,7 +2184,7 @@ FROM v$instance</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT LISTAGG(users_locked, ';') WITHIN GROUP (&#13;
+                    <params>SELECT LISTAGG(users_locked, ',') WITHIN GROUP (&#13;
 ORDER BY dummy) AS users_locked&#13;
 FROM&#13;
   (SELECT 'dummy' AS dummy,&#13;
@@ -2223,7 +2227,7 @@ SELECT 'none' FROM dual</params>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_controfileio, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2239,7 +2243,7 @@ SELECT 'none' FROM dual</params>
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'control file sequential read', total_waits, 'control file single write', total_waits, 'control file parallel write',total_waits,0))) ControlFileIO&#13;
+                    <params>SELECT SUM(DECODE(event,'control file sequential read', total_waits, 'control file single write', total_waits, 'control file parallel write',total_waits,0)) ControlFileIO&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client','pmon timer', 'rdbms ipc message', 'rdbms ipc reply', 'smon timer')</params>
@@ -2269,7 +2273,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_directpath_read, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2285,7 +2289,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'direct path read',total_waits,0))) DirectPathRead&#13;
+                    <params>SELECT SUM(DECODE(event,'direct path read',total_waits,0)) DirectPathRead&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from ', 'SQL*Net more data from client','pmon timer', 'rdbms ipc message', 'rdbms ipc reply', 'smon timer')</params>
@@ -2315,7 +2319,7 @@ AND event NOT IN ( 'SQL*Net message from ', 'SQL*Net more data from client','pmo
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_file_io, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2331,7 +2335,7 @@ AND event NOT IN ( 'SQL*Net message from ', 'SQL*Net more data from client','pmo
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'file identify',total_waits, 'file open',total_waits,0))) FileIO&#13;
+                    <params>SELECT SUM(DECODE(event,'file identify',total_waits, 'file open',total_waits,0)) FileIO&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client', 'pmon timer', 'rdbms ipc message', 'rdbms ipc reply', 'smon timer')</params>
@@ -2360,8 +2364,8 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_latch, {$ORACLE_ODBC_DSN}]</key>
-                    <delay>80</delay>
-                    <history>90</history>
+                    <delay>240</delay>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2377,7 +2381,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'control file sequential read', total_waits, 'control file single write', total_waits, 'control file parallel write',total_waits,0))) ControlFileIO&#13;
+                    <params>SELECT SUM(DECODE(event,'control file sequential read', total_waits, 'control file single write', total_waits, 'control file parallel write',total_waits,0)) ControlFileIO&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client', 'pmon timer', 'rdbms ipc message', 'rdbms ipc reply', 'smon timer')</params>
@@ -2407,7 +2411,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_logwrite, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2423,7 +2427,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'log file single write',total_waits, 'log file parallel write',total_waits,0))) LogWrite&#13;
+                    <params>SELECT SUM(DECODE(event,'log file single write',total_waits, 'log file parallel write',total_waits,0)) LogWrite&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client', 'pmon timer', 'rdbms ipc message', 'rdbms ipc reply', 'smon timer')</params>
@@ -2453,7 +2457,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_multiblock_read, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2469,7 +2473,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'db file scattered read',total_waits,0))) MultiBlockRead&#13;
+                    <params>SELECT SUM(DECODE(event,'db file scattered read',total_waits,0)) MultiBlockRead&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client', 'pmon timer', 'rdbms ipc message', 'rdbms ipc reply', 'smon timer')</params>
@@ -2499,7 +2503,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_other, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2515,7 +2519,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'control file sequential read',0,'control file single write',0,'control file parallel write',0,'db file sequential read',0,'db file scattered read',0,'direct path read',0,'file identify',0,'file open',0,'SQL*Net message to client',0,'SQL*Net message to dblink',0, 'SQL*Net more data to client',0,'SQL*Net more data to dblink',0, 'SQL*Net break/reset to client',0,'SQL*Net break/reset to dblink',0, 'log file single write',0,'log file parallel write',0,total_waits))) Other&#13;
+                    <params>SELECT SUM(DECODE(event,'control file sequential read',0,'control file single write',0,'control file parallel write',0,'db file sequential read',0,'db file scattered read',0,'direct path read',0,'file identify',0,'file open',0,'SQL*Net message to client',0,'SQL*Net message to dblink',0, 'SQL*Net more data to client',0,'SQL*Net more data to dblink',0, 'SQL*Net break/reset to client',0,'SQL*Net break/reset to dblink',0, 'log file single write',0,'log file parallel write',0,total_waits)) Other&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client', 'pmon timer', 'rdbms ipc message', 'rdbms ipc reply', 'smon timer')</params>
@@ -2545,7 +2549,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_singleblock_read, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>90</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2561,7 +2565,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'db file sequential read',total_waits,0))) SingleBlockRead&#13;
+                    <params>SELECT SUM(DECODE(event,'db file sequential read',total_waits,0)) SingleBlockRead&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client', 'pmon timer', 'rdbms ipc message', 'rdbms ipc reply', 'smon timer')</params>
@@ -2591,7 +2595,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmp_oid/>
                     <key>db.odbc.select[ora_waits_sqlnet, {$ORACLE_ODBC_DSN}]</key>
                     <delay>80</delay>
-                    <history>80</history>
+                    <history>14</history>
                     <trends>365</trends>
                     <status>0</status>
                     <value_type>3</value_type>
@@ -2607,7 +2611,7 @@ AND event NOT IN ( 'SQL*Net message from client', 'SQL*Net more data from client
                     <snmpv3_privpassphrase/>
                     <formula>1</formula>
                     <delay_flex/>
-                    <params>SELECT TO_CHAR(SUM(DECODE(event,'SQL*Net message to client',total_waits,'SQL*Net message to dblink',total_waits,'SQL*Net more data to client',total_waits,'SQL*Net more data to dblink',total_waits,'SQL*Net break/reset to client',total_waits,'SQL*Net break/reset to dblink',total_waits,0))) SQLNET&#13;
+                    <params>SELECT SUM(DECODE(event,'SQL*Net message to client',total_waits,'SQL*Net message to dblink',total_waits,'SQL*Net more data to client',total_waits,'SQL*Net more data to dblink',total_waits,'SQL*Net break/reset to client',total_waits,'SQL*Net break/reset to dblink',total_waits,0)) SQLNET&#13;
 FROM V$system_event&#13;
 WHERE 1        =1&#13;
 AND event NOT IN ( 'SQL*Net message from client','SQL*Net more data from client','pmon timer','rdbms ipc message','rdbms ipc reply', 'smon timer')</params>
@@ -2671,8 +2675,8 @@ AND event NOT IN ( 'SQL*Net message from client','SQL*Net more data from client'
                             <multiplier>0</multiplier>
                             <snmp_oid/>
                             <key>db.odbc.select[ts-{#TSNAME}-totalsize,{$ORACLE_ODBC_DSN}]</key>
-                            <delay>60</delay>
-                            <history>90</history>
+                            <delay>600</delay>
+                            <history>14</history>
                             <trends>365</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -2717,8 +2721,8 @@ WHERE tablespace_name='{#TSNAME}';</params>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
                             <key>db.odbc.select[ts-{#TSNAME}-usedspace,{$ORACLE_ODBC_DSN}]</key>
-                            <delay>60</delay>
-                            <history>90</history>
+                            <delay>600</delay>
+                            <history>14</history>
                             <trends>365</trends>
                             <status>0</status>
                             <value_type>3</value_type>
@@ -2763,8 +2767,8 @@ WHERE tablespace_name='{#TSNAME}';</params>
                             <multiplier>0</multiplier>
                             <snmp_oid/>
                             <key>db.odbc.select[ts-{#TSNAME}-used_pct,{$ORACLE_ODBC_DSN}]</key>
-                            <delay>60</delay>
-                            <history>90</history>
+                            <delay>600</delay>
+                            <history>14</history>
                             <trends>365</trends>
                             <status>0</status>
                             <value_type>0</value_type>
@@ -2867,7 +2871,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <macros>
                 <macro>
                     <macro>{$ORACLE_ARCHIVELOGSIZE}</macro>
-                    <value>600</value>
+                    <value>4096</value>
                 </macro>
                 <macro>
                     <macro>{$ORACLE_ODBC_DSN}</macro>
@@ -2885,7 +2889,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <templates/>
             <screens>
                 <screen>
-                    <name>Oracle Performance</name>
+                    <name>Oracle - Performance</name>
                     <hsize>2</hsize>
                     <vsize>3</vsize>
                     <screen_items>
@@ -3024,7 +3028,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
                     </screen_items>
                 </screen>
                 <screen>
-                    <name>Oracle Tablespaces</name>
+                    <name>Oracle - Tablespaces</name>
                     <hsize>1</hsize>
                     <vsize>1</vsize>
                     <screen_items>
@@ -3057,28 +3061,38 @@ WHERE tablespace_name='{#TSNAME}';</params>
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template Oracle ODBC:db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}].last(0)}&gt;10</expression>
-            <name>Active Session on {HOST.NAME}</name>
+            <expression>({Template Oracle ODBC:db.odbc.select[ora_pga, {$ORACLE_ODBC_DSN}].last(0)}*100/{Template Oracle ODBC:db.odbc.select[ora_pga_aggregate_target, {$ORACLE_ODBC_DSN}].last(0)})&gt;90</expression>
+            <name>[{HOST.NAME}] &quot;total PGA inuse&quot; is more than 90% of PGA_AGGREGATE_TARGET</name>
             <url/>
             <status>0</status>
             <priority>3</priority>
-            <description>44414E474552</description>
+            <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Oracle ODBC:db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}].last(0)}&gt;20</expression>
-            <name>Active Session on {HOST.NAME}</name>
+            <expression>({Template Oracle ODBC:db.odbc.select[ora_procnum, {$ORACLE_ODBC_DSN}].last(0)}*100/{Template Oracle ODBC:db.odbc.select[ora_maxprocs, {$ORACLE_ODBC_DSN}].last(0)})&gt;80</expression>
+            <name>[{HOST.NAME}] Active process are using more than 80% of the available Process number</name>
             <url/>
             <status>0</status>
-            <priority>4</priority>
-            <description>44414E474552</description>
+            <priority>3</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>({Template Oracle ODBC:db.odbc.select[ora_session, {$ORACLE_ODBC_DSN}].last(0)}*100/{Template Oracle ODBC:db.odbc.select[ora_maxsession, {$ORACLE_ODBC_DSN}].last(0)})&gt;80</expression>
+            <name>[{HOST.NAME}] Active Sessions are using more than 80% of the available Sessions</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
             <expression>{Template Oracle ODBC:db.odbc.select[ora_archive, {$ORACLE_ODBC_DSN}].last(0)}&gt;{$ORACLE_ARCHIVELOGSIZE}</expression>
-            <name>Archivelog on {HOST.NAME}</name>
+            <name>[{HOST.NAME}] Archivelog rate above $1 per hour</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
@@ -3088,37 +3102,63 @@ WHERE tablespace_name='{#TSNAME}';</params>
         </trigger>
         <trigger>
             <expression>{Template Oracle ODBC:db.odbc.select[ora_audit, {$ORACLE_ODBC_DSN}].str(none)}=0</expression>
-            <name>Audit on {HOST.NAME}</name>
+            <name>[{HOST.NAME}] Audit Alarm</name>
             <url/>
             <status>0</status>
             <priority>4</priority>
-            <description>20</description>
+            <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template Oracle ODBC:db.odbc.select[ora_hitratio_table_proc, {$ORACLE_ODBC_DSN}].avg(60)}&lt;50 or {Template Oracle ODBC:db.odbc.select[ora_hitratio_trigger, {$ORACLE_ODBC_DSN}].avg(60)}&lt;50 or {Template Oracle ODBC:db.odbc.select[ora_hitratio_sqlarea, {$ORACLE_ODBC_DSN}].avg(60)}&lt;50 or {Template Oracle ODBC:db.odbc.select[ora_hitratio_body, {$ORACLE_ODBC_DSN}].avg(60)}&lt;50</expression>
-            <name>Hit Ratio on {HOST.NAME}</name>
+            <expression>{Template Oracle ODBC:db.odbc.select[ora_hitratio_table_proc, {$ORACLE_ODBC_DSN}].avg(60)}&lt;50&#13;
+ or&#13;
+{Template Oracle ODBC:db.odbc.select[ora_hitratio_trigger, {$ORACLE_ODBC_DSN}].avg(60)}&lt;50&#13;
+ or&#13;
+{Template Oracle ODBC:db.odbc.select[ora_hitratio_sqlarea, {$ORACLE_ODBC_DSN}].avg(60)}&lt;50&#13;
+ or&#13;
+{Template Oracle ODBC:db.odbc.select[ora_hitratio_body, {$ORACLE_ODBC_DSN}].avg(60)}&lt;50</expression>
+            <name>[{HOST.NAME}] Hit Ratio less than 50%</name>
             <url/>
             <status>0</status>
-            <priority>4</priority>
-            <description>20</description>
+            <priority>3</priority>
+            <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
             <expression>{Template Oracle ODBC:db.odbc.select[ora_locks, {$ORACLE_ODBC_DSN}].str(none)}=0</expression>
-            <name>Locks on {HOST.NAME}</name>
+            <name>[{HOST.NAME}] Locks Alarm</name>
             <url/>
             <status>0</status>
             <priority>4</priority>
-            <description>20</description>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template Oracle ODBC:db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}].last(0)}&gt;10</expression>
+            <name>[{HOST.NAME}] More than 10 Active Session</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{Template Oracle ODBC:db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}].last(0)}&gt;20</expression>
+            <name>[{HOST.NAME}] More than 20 Active Session</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
             <expression>{Template Oracle ODBC:db.odbc.select[ora_uptime, {$ORACLE_ODBC_DSN}].last()}&lt;600</expression>
-            <name>Oracle on {HOST.NAME} restarted</name>
+            <name>[{HOST.NAME}] Oracle DB Restarted</name>
             <url/>
             <status>0</status>
             <priority>1</priority>
@@ -3127,38 +3167,8 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>({Template Oracle ODBC:db.odbc.select[ora_pga, {$ORACLE_ODBC_DSN}].last(0)}*100/{Template Oracle ODBC:db.odbc.select[ora_pga_aggregate_target, {$ORACLE_ODBC_DSN}].last(0)})&gt;90</expression>
-            <name>PGA Alarm on {HOST.NAME}</name>
-            <url>http://10.10.64.93/overview.php</url>
-            <status>0</status>
-            <priority>4</priority>
-            <description>20</description>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>({Template Oracle ODBC:db.odbc.select[ora_procnum, {$ORACLE_ODBC_DSN}].last(0)}*100/{Template Oracle ODBC:db.odbc.select[ora_maxprocs, {$ORACLE_ODBC_DSN}].last(0)})&gt;80</expression>
-            <name>Process Alarm on {HOST.NAME}</name>
-            <url/>
-            <status>0</status>
-            <priority>4</priority>
-            <description>20</description>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>({Template Oracle ODBC:db.odbc.select[ora_session, {$ORACLE_ODBC_DSN}].last(0)}*100/{Template Oracle ODBC:db.odbc.select[ora_maxsession, {$ORACLE_ODBC_DSN}].last(0)})&gt;80</expression>
-            <name>Session Alarm on {HOST.NAME}</name>
-            <url>http://10.10.64.93/overview.php</url>
-            <status>0</status>
-            <priority>4</priority>
-            <description>20</description>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
             <expression>{Template Oracle ODBC:db.odbc.select[ora_users_locked, {$ORACLE_ODBC_DSN}].str(none)}=0</expression>
-            <name>User Locked on {HOST.NAME}</name>
+            <name>[{HOST.NAME}] User Locked</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
@@ -3175,7 +3185,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>1</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>0</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3207,7 +3217,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>1</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3335,7 +3345,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>0</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3403,7 +3413,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>1</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3459,7 +3469,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>0</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3503,7 +3513,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>0</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3559,7 +3569,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>0</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3627,7 +3637,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>0</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3672,7 +3682,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>1</show_work_period>
             <show_triggers>1</show_triggers>
-            <type>1</type>
+            <type>0</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
             <percent_left>0.0000</percent_left>
@@ -3685,19 +3695,19 @@ WHERE tablespace_name='{#TSNAME}';</params>
                 <graph_item>
                     <sortorder>0</sortorder>
                     <drawtype>1</drawtype>
-                    <color>0000FF</color>
+                    <color>1A7C11</color>
                     <yaxisside>0</yaxisside>
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
                         <host>Template Oracle ODBC</host>
-                        <key>db.odbc.select[ora_session_inactive, {$ORACLE_ODBC_DSN}]</key>
+                        <key>db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}]</key>
                     </item>
                 </graph_item>
                 <graph_item>
                     <sortorder>1</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>FF00FF</color>
+                    <drawtype>2</drawtype>
+                    <color>F63100</color>
                     <yaxisside>0</yaxisside>
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
@@ -3708,14 +3718,14 @@ WHERE tablespace_name='{#TSNAME}';</params>
                 </graph_item>
                 <graph_item>
                     <sortorder>2</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>009900</color>
+                    <drawtype>2</drawtype>
+                    <color>2774A4</color>
                     <yaxisside>0</yaxisside>
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
                         <host>Template Oracle ODBC</host>
-                        <key>db.odbc.select[ora_session_active, {$ORACLE_ODBC_DSN}]</key>
+                        <key>db.odbc.select[ora_session_inactive, {$ORACLE_ODBC_DSN}]</key>
                     </item>
                 </graph_item>
             </graph_items>
@@ -3727,7 +3737,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>1</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
@@ -3819,7 +3829,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
             <yaxismin>0.0000</yaxismin>
             <yaxismax>100.0000</yaxismax>
             <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
+            <show_triggers>1</show_triggers>
             <type>1</type>
             <show_legend>1</show_legend>
             <show_3d>0</show_3d>
