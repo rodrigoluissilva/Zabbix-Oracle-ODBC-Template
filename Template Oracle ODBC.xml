@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2016-10-28T10:29:20Z</date>
+    <date>2016-11-15T17:07:13Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -2810,7 +2810,7 @@ WHERE tablespace_name='{#TSNAME}';</params>
                     <trigger_prototypes>
                         <trigger_prototype>
                             <expression>{Template Oracle ODBC:db.odbc.select[ts-{#TSNAME}-used_pct,{$ORACLE_ODBC_DSN}].last()}&gt;90</expression>
-                            <name>Tablespace Usage on {HOST.NAME} is more than 90% on {#TSNAME}</name>
+                            <name>[{HOST.NAME}] Tablespace Usage is more than 90% on {#TSNAME}</name>
                             <url/>
                             <status>0</status>
                             <priority>3</priority>
